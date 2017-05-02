@@ -1,20 +1,17 @@
 package Book;
 
-import com.sun.istack.internal.Nullable;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class Book {
 
     private List<Person> personList = new ArrayList<>();
 
-    private class PersonRecord implements Person {
+    //Person
+    private static final class PersonRecord implements Person {
         private transient Pattern rg = Pattern.compile("\\+?[0-9*#-]+");
 
         private String name;
@@ -37,7 +34,7 @@ public class Book {
             } else throw new IllegalArgumentException("No number with such index found");
         }
         public List<String> getAllNumbers() {
-            return numberList;
+            return numberList.stream().collect(Collectors.toList());
         }
 
         public String getName() {
@@ -102,6 +99,20 @@ public class Book {
             return m.matches();
         }
 
+        @Override
+        public boolean equals(Object other) {
+            if (other.getClass() != this.getClass()) return false;
+            Person person = (Person)other;
+            return (person.getName().equals(this.getName()) && person.getAllNumbers().equals(this.getAllNumbers()));
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder str = new StringBuilder();
+            str.append(name).append("\r\n");
+            this.numberList.forEach(N -> str.append("\t").append(N).append("\r\n"));
+            return str.toString();
+        }
     }
 
     //Добавление контакта
@@ -113,7 +124,8 @@ public class Book {
     }
     //Удаление контакта
     public void removePerson(String name) {
-        Person person = getPersonByName(name);
+        Person person = this.getPersonByName(name);
+//System.out.print(person.equals(personList.get(0)));
         if (person != null && personList.contains(person))
             personList.remove(person);
         else throw new IllegalArgumentException("Person not exists");
@@ -121,16 +133,16 @@ public class Book {
     public void removePerson(Person person) {
         if (personList.contains(person))
             personList.remove(person);
-        else throw new IllegalArgumentException("Person not exists");
+        else throw new
+                IllegalArgumentException("Person not exists");
     }
     //Поиск понтактов
-    @Nullable
     public Person getPersonByName(String name) {
         return personList.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
     }
     //Теоретически, один номер может быть записан для двух разных имен
-    public Person[] getPersonByNumber(String number) {
-        return personList.stream().filter(p -> p.getAllNumbers().contains(number)).toArray(size -> new Person[size]);
+    public List<Person> getPersonByNumber(String number) {
+        return personList.stream().filter(p -> p.getAllNumbers().contains(number)).collect(Collectors.toList());
     }
 
     public List<String> getNumbers(String name) {
@@ -150,5 +162,14 @@ public class Book {
         return person.getNumber();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        personList.forEach(P -> {
+            str.append(P.getName()).append("\r\n");
+            P.getAllNumbers().forEach(N -> str.append("\t").append(N).append("\r\n"));
+        });
+        return str.toString();
+    }
 
 }
